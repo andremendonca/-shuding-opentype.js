@@ -1,5 +1,5 @@
 /**
- * https://opentype.js.org v1.3.5 | (c) Frederik De Bleser and other contributors | MIT License | Uses fflate by 101arrowz and string.prototype.codepointat polyfill by Mathias Bynens
+ * https://opentype.js.org v1.4.0-beta.0 | (c) Frederik De Bleser and other contributors | MIT License | Uses fflate by 101arrowz and string.prototype.codepointat polyfill by Mathias Bynens
  */
 
 // DEFLATE is a complex format; to read this code, you should probably check the RFC first:
@@ -7658,14 +7658,25 @@ function chainingSubstitutionFormat3(contextParams, subtable) {
             var lookupTable = this.getLookupByIndex(lookupListIndex);
             for (var s = 0; s < lookupTable.subtables.length; s++) {
                 var subtable$1 = lookupTable.subtables[s];
-                var lookup = this.getLookupMethod(lookupTable, subtable$1);
+                var lookup = (void 0);
                 var substitutionType = this.getSubstitutionType(lookupTable, subtable$1);
+
+                if (substitutionType === '71') {
+                    // This is an extension subtable, so lookup the target subtable
+                    substitutionType = this.getSubstitutionType(subtable$1, subtable$1.extension);
+                    lookup = this.getLookupMethod(subtable$1, subtable$1.extension);
+                    subtable$1 = subtable$1.extension;
+                } else {
+                    lookup = this.getLookupMethod(lookupTable, subtable$1);
+                }
                 if (substitutionType === '12') {
                     for (var n = 0; n < inputLookups.length; n++) {
                         var glyphIndex = contextParams.get(n);
                         var substitution = lookup(glyphIndex);
                         if (substitution) { substitutions.push(substitution); }
                     }
+                } else {
+                    throw new Error(("Substitution type " + substitutionType + " is not supported in chaining substitution"));
                 }
             }
         }
@@ -7879,7 +7890,17 @@ FeatureQuery.prototype.lookupFeature = function (query) {
         for (var s = 0; s < subtables.length; s++) {
             var subtable = subtables[s];
             var substType = this.getSubstitutionType(lookupTable, subtable);
-            var lookup = this.getLookupMethod(lookupTable, subtable);
+            var lookup = (void 0);
+
+            if (substType === '71') {
+                // This is an extension subtable, so lookup the target subtable
+                substType = this.getSubstitutionType(subtable, subtable.extension);
+                lookup = this.getLookupMethod(subtable, subtable.extension);
+                subtable = subtable.extension;
+            } else {
+                lookup = this.getLookupMethod(lookupTable, subtable);
+            }
+
             var substitution = (void 0);
             switch (substType) {
                 case '11':
