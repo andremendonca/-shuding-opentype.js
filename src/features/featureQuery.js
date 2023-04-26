@@ -317,6 +317,10 @@ FeatureQuery.prototype.getLookupMethod = function(lookupTable, subtable) {
             return contextParams => chainingSubstitutionFormat3.apply(
                 this, [contextParams, subtable]
             );
+        case '71':
+            return contextParams => chainingSubstitutionFormat3.apply(
+                this, [contextParams, subtable]
+            );
         case '41':
             return contextParams => ligatureSubstitutionFormat1.apply(
                 this, [contextParams, subtable]
